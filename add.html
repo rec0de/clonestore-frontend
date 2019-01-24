@@ -1,0 +1,276 @@
+<!doctype html>
+<html>
+<head>
+	<title>CloneStore</title>
+	<meta charset="UTF-8">
+	<meta name=viewport content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="style.css">
+	<link rel="stylesheet" href="loader.css">
+</head>
+
+<body>
+	<script type="text/javascript" src="api.js"></script>
+	<script type="text/javascript" src="config.js"></script>
+<script>
+window.addEventListener('load', function() {
+
+	g('inp_submit').addEventListener('click', submitPlasmid);
+
+	g('inp_selMark_other').addEventListener('change', function() {
+		g('inp_selMark_otherPanel').style.display = g('inp_selMark_other').checked ? 'block' : 'none';
+	});
+
+	g('inp_features_other').addEventListener('change', function() {
+		g('inp_features_otherPanel').style.display = g('inp_features_other').checked ? 'block' : 'none';
+	});
+
+	g('inp_features_otherPanel').style.display = g('inp_features_other').checked ? 'block' : 'none';
+	g('inp_selMark_otherPanel').style.display = g('inp_selMark_other').checked ? 'block' : 'none';
+});
+
+function submitPlasmid() {
+	let markers = [
+		'inp_selMark_ampicillin',
+		'inp_selMark_kanamycin',
+		'inp_selMark_spectinomycin',
+		'inp_selMark_tetracyclin',
+		'inp_selMark_chloramphenicol',
+		'inp_selMark_gentamycin',
+		'inp_selMark_rifampicin'
+	];
+
+	let features = [
+		'inp_features_goldenbraid',
+		'inp_features_moclo',
+		'inp_features_cloningvector',
+		'inp_features_bacterialexpression',
+		'inp_features_yeastvector',
+		'inp_features_magnicon',
+		'inp_features_chloroplasttransformation',
+		'inp_features_miscellaneous'
+	];
+
+	let plasmid = {};
+
+	plasmid.createdBy = g('inp_createdBy').value;
+	plasmid.initials = g('inp_initials').value;
+	plasmid.timeOfCreation = g('inp_timeOfCreation').valueAsNumber / 1000;
+	plasmid.description = g('inp_description').value;
+	plasmid.labNotes = g('inp_labNotes').value;
+	plasmid.backbonePlasmid = g('inp_backbone').value;
+
+	plasmid.selectionMarkers = [];
+
+	for (let i = 0; i < markers.length; i++) {
+		if(g(markers[i]).checked) {
+			plasmid.selectionMarkers.push(g(markers[i]).value);
+		}
+	}
+
+	if(g('inp_selMark_other').checked) {
+		let otherMarkers = g('inp_selMark_otherValue').value.split(',');
+		for (let i = 0; i < otherMarkers.length; i++) {
+			plasmid.selectionMarkers.push(otherMarkers[i].trim());
+		}
+	}
+
+	plasmid.features = [];
+
+	for (let i = 0; i < features.length; i++) {
+		if(g(features[i]).checked) {
+			plasmid.features.push(g(features[i]).value);
+		}
+	}
+
+	if(g('inp_features_other').checked) {
+		let otherFeatures = g('inp_features_otherValue').value.split(',');
+		for (let i = 0; i < otherFeatures.length; i++) {
+			plasmid.features.push(otherFeatures[i].trim());
+		}
+	}
+
+	if(g('inp_gbfile').files.length > 0) {
+		let reader = new FileReader();
+		reader.onload = function() {
+			plasmid.geneData = reader.result;
+
+			g('spinner').style.display = 'block';
+			postPlasmid(JSON.stringify(plasmid)).then(function(data) {
+				if(typeCheck(data, 'plasmidID')) {
+					window.location = `index.html?${data.id}`;
+				}
+			});
+		};
+		reader.readAsText(g('inp_gbfile').files[0]);
+	}
+}
+
+function validationError(msg) {
+	g('validationError').innerText = msg;
+}
+
+function typeCheck(data, type) {
+	if(data.type === type) {
+		return true;
+	}
+	else if(data.type === 'error') {
+		alert(data.details);
+		return false;
+	}
+	else {
+		alert('Got unexpected data');
+		return false;
+	}
+}
+
+function g(id) {
+	return document.getElementById(id);
+}
+</script>
+
+	<div class="fullscreenLoad" id="spinner">
+		<div id="loader" style="--strands: 10;">
+			<div style="--s: 0;"></div>
+			<div style="--s: 1;"></div>
+			<div style="--s: 2;"></div>
+			<div style="--s: 3;"></div>
+			<div style="--s: 4;"></div>
+			<div style="--s: 5;"></div>
+			<div style="--s: 6;"></div>
+			<div style="--s: 7;"></div>
+			<div style="--s: 8;"></div>
+			<div style="--s: 9;"></div>
+		</div>
+	</div>
+
+	<div class="content">
+		<h1>Add a new plasmid</h1>
+
+		<h2>Basic Data</h2>
+
+		<div class="rowOfTwo">
+			<input type="text" class="rowElem" id="inp_createdBy" placeholder="Creator Name">
+			<input type="text" class="rowElem" id="inp_initials" placeholder="Initials">
+		</div>
+
+		<div class="rowOfTwo">
+			<span class="label rowElem">Date created</span>
+			<input type="date" class="rowElem" id="inp_timeOfCreation" placeholder="Date created">
+		</div>
+
+		<div class="rowOfOne">
+			<input type="text" class="rowElem" id="inp_labNotes" placeholder="Lab Notes">
+		</div>
+
+		<div class="rowOfOne">
+			<input type="text" class="rowElem" id="inp_backbone" placeholder="Backbone Plasmid">
+		</div>
+
+		<div class="rowOfTwo">
+			<span class="label rowElem">GB File</span>
+			<input type="file" class="rowElem" id="inp_gbfile" accept=".gb">
+		</div>
+
+		<h2>Selection Markers</h2>
+
+		<div class="rowOfThree">
+			<div class="rowElem">
+				<input type="checkbox" id="inp_selMark_ampicillin" value="Ampicillin/Carbenicillin">
+				<label for="inp_selMark_ampicillin">Ampicillin/Carbenicillin</label>
+			</div>
+			<div class="rowElem">
+				<input type="checkbox" id="inp_selMark_kanamycin" value="Kanamycin">
+				<label for="inp_selMark_kanamycin">Kanamycin</label>
+			</div>
+			<div class="rowElem">
+				<input type="checkbox" id="inp_selMark_spectinomycin" value="Spectinomycin">
+				<label for="inp_selMark_spectinomycin">Spectinomycin</label>
+			</div>
+			<div class="rowElem">
+				<input type="checkbox" id="inp_selMark_tetracyclin" value="Tetracyclin">
+				<label for="inp_selMark_tetracyclin">Tetracyclin</label>
+			</div>
+			<div class="rowElem">
+				<input type="checkbox" id="inp_selMark_chloramphenicol" value="Chloramphenicol">
+				<label for="inp_selMark_chloramphenicol">Chloramphenicol</label>
+			</div>
+			<div class="rowElem">
+				<input type="checkbox" id="inp_selMark_gentamycin" value="Gentamycin">
+				<label for="inp_selMark_gentamycin">Gentamycin</label>
+			</div>
+			<div class="rowElem">
+				<input type="checkbox" id="inp_selMark_rifampicin" value="Rifampicin">
+				<label for="inp_selMark_rifampicin">Rifampicin</label>
+			</div>
+			<div class="rowElem">
+				<input type="checkbox" id="inp_selMark_other">
+				<label for="inp_selMark_other">Other</label>
+			</div>
+		</div>
+
+		<div class="rowOfOne" id="inp_selMark_otherPanel" style="display: none;">
+			<p>Please enter any additional Selection Markers. You can enter multiple markers separated by commas.</p>
+			<input type="text" class="rowElem" id="inp_selMark_otherValue" placeholder="Custom Selection Markers">
+		</div>
+
+		<h2>Plasmid Features</h2>
+
+		<div class="rowOfThree">
+			<div class="rowElem">
+				<input type="checkbox" id="inp_features_goldenbraid" value="Golden Braid">
+				<label for="inp_features_goldenbraid">Golden Braid</label>
+			</div>
+			<div class="rowElem">
+				<input type="checkbox" id="inp_features_moclo" value="MoClo">
+				<label for="inp_features_moclo">MoClo</label>
+			</div>
+			<div class="rowElem">
+				<input type="checkbox" id="inp_features_cloningvector" value="Cloning Vector">
+				<label for="inp_features_cloningvector">Cloning Vector</label>
+			</div>
+			<div class="rowElem">
+				<input type="checkbox" id="inp_features_bacterialexpression" value="Bacterial Expression">
+				<label for="inp_features_bacterialexpression">Bacterial Expression</label>
+			</div>
+			<div class="rowElem">
+				<input type="checkbox" id="inp_features_yeastvector" value="Yeast Vector">
+				<label for="inp_features_yeastvector">Yeast Vector</label>
+			</div>
+			<div class="rowElem">
+				<input type="checkbox" id="inp_features_magnicon" value="MagnIcon">
+				<label for="inp_features_magnicon">MagnIcon</label>
+			</div>
+			<div class="rowElem">
+				<input type="checkbox" id="inp_features_chloroplasttransformation" value="Chloroplast transformation">
+				<label for="inp_features_chloroplasttransformation">Chloroplast transformation</label>
+			</div>
+			<div class="rowElem">
+				<input type="checkbox" id="inp_features_miscellaneous" value="miscellaneous">
+				<label for="inp_features_miscellaneous">miscellaneous</label>
+			</div>
+			<div class="rowElem">
+				<input type="checkbox" id="inp_features_other">
+				<label for="inp_features_other">Other</label>
+			</div>
+		</div>
+
+		<div class="rowOfOne" id="inp_features_otherPanel" style="display: none;">
+			<p>Please enter any additional features, comma-separated.</p>
+			<input type="text" class="rowElem" id="inp_features_otherValue" placeholder="Custom Features">
+		</div>
+
+		<h2>Description</h2>
+
+		<div class="rowOfOne">
+			<textarea id="inp_description" class="rowElem"></textarea>
+		</div>
+
+		<div class="rowOfTwo">
+			<a href="index.html" class="rowElem button">Back</a>
+			<button id="inp_submit" class="rowElem">Create</button>
+		</div>
+		<p id="validationError" style="text-align: center;"></p>
+	</div>
+
+</body>
+</html>

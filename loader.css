@@ -1,0 +1,84 @@
+/* adapted from https://codepen.io/chriskirknielsen/pen/MVmaRJ by Christopher Kirk-Nielsen */
+
+:root {
+	--background-color: #eeeeee;
+	--strand-color: #201410;
+	--strand-color-alt: #990E10;
+	--strand-width: 2.5rem;
+	--strand-height: .5rem;
+	--strand-line: .125rem;
+	--strand-ball: calc(var(--strand-height) * .75);
+	--animation-duration: .5s;
+	--animation-delay: calc(var(--animation-duration) * -.375);
+}
+
+.fullscreenLoad {
+	display: none;
+	position: fixed;
+	width: 100%;
+	height: 100%;
+	z-index: 5;
+	background-color: var(--background-color);
+	top: 0;
+}
+
+#loader {
+	position: fixed;
+	left: 50%;
+	top: 50%;
+	transform: translate(-50%, -50%);
+	width: var(--strand-width);
+}
+
+#loader > div {
+	position: relative;
+	width: var(--strand-width);
+	height: var(--strand-height);
+}
+
+#loader > div:nth-child(3n) {
+	--strand-color: var(--strand-color-alt);
+}
+
+#loader > div::before, #loader > div::after {
+	content: '';
+	position: absolute;
+	background: var(--strand-color);
+	animation-duration: calc(var(--animation-duration));
+	animation-iteration-count: infinite;
+	animation-timing-function: ease-in-out;
+	animation-direction: alternate;
+	animation-delay: calc(var(--s) * var(--animation-delay));
+}
+
+#loader > div::before {
+	left: calc(var(--strand-ball) / 2);
+	top: calc((var(--strand-height) - var(--strand-line)) / 2);
+	width: calc(var(--strand-width) - var(--strand-ball));
+	height: var(--strand-line);
+	animation-name: line;
+	will-change: transform;
+}
+
+#loader > div::after {
+	top: calc((var(--strand-height) - var(--strand-ball)) / 2);
+	width: var(--strand-ball);
+	height: var(--strand-ball);
+	border-radius: 50%;
+	box-shadow: calc(var(--strand-width) - var(--strand-ball)) 0 0 var(--strand-color);
+	animation-name: ball;
+	will-change: transform, box-shadow;
+}
+
+@keyframes line {
+	to {
+		transform: scaleX(0);
+	}
+}
+
+@keyframes ball {
+	to {
+		transform: translateX(calc((var(--strand-width) - var(--strand-ball)) / 2));
+		box-shadow: 0 0 0 var(--strand-color);
+	}
+}

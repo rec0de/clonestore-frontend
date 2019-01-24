@@ -1,0 +1,153 @@
+<!doctype html>
+<html>
+<head>
+	<title>CloneStore</title>
+	<meta charset="UTF-8">
+	<meta name=viewport content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="style.css">
+	<link rel="stylesheet" href="loader.css">
+</head>
+
+<body>
+	<script type="text/javascript" src="api.js"></script>
+	<script type="text/javascript" src="config.js"></script>
+<script>
+window.addEventListener('load', function() {
+	if(window.location.hash) {
+		let id = window.location.hash.substr(1);
+		g('fld_id').innerText = id;
+		g('inp_plasmidID').value = id;
+		g('inp_back').href = `index.html?${id}`;
+	}
+	else {
+		alert('No plasmid given');
+	}
+
+	g('inp_hostSelect').addEventListener('change', function() {
+		let select = g('inp_hostSelect');
+		if(select.value === 'other') {
+			g('inp_hostOther').removeAttribute('disabled');
+		}
+		else {
+			g('inp_hostOther').setAttribute('disabled', 'disabled');
+		}
+	});
+
+	g('inp_submit').addEventListener('click', function() {
+		let shelf = g('inp_shelfNo').value;
+		let box = g('inp_boxNo').value;
+		let slot = g('inp_slotNo').value;
+		let hostSelect = g('inp_hostSelect').value;
+		let hostAlt = g('inp_hostOther').value;
+		let id = g('inp_plasmidID').value;
+
+		if(id === '') {
+			validationError('Missing plasmid ID, please try again');
+		}
+		else if(shelf < 1 || shelf > 1000) {
+			validationError('Shelf number is missing or invalid');
+		}
+		else if(box < 1 || box > 1000) {
+			validationError('Box number is missing or invalid');
+		}
+		else if(slot < 1 || slot > 1000) {
+			validationError('Slot number is missing or invalid');
+		}
+		else if(hostSelect === 'unset' || (hostSelect === 'other' && hostAlt === '')) {
+			validationError('Please choose a bacterial host');
+		}
+		else {
+			let loc = `A${shelf}B${box}C${slot}`;
+			let host = (hostSelect === 'other') ? hostAlt : hostSelect;
+			g('spinner').style.display = 'block';
+			putStorage(loc, id, host).then(function(response) {
+				if(typeCheck(response, 'success')) {
+					window.location = `index.html?${id}`;
+				}
+				else {
+					g('spinner').style.display = 'none';
+				}
+			});
+		}
+	});
+
+	g('inp_hostSelect').value = 'unset';
+	g('inp_shelfNo').value = '';
+	g('inp_boxNo').value = '';
+	g('inp_slotNo').value = '';
+	g('inp_hostOther').setAttribute('disabled', 'disabled');
+});
+
+function validationError(msg) {
+	g('validationError').innerText = msg;
+}
+
+function typeCheck(data, type) {
+	if(data.type === type) {
+		return true;
+	}
+	else if(data.type === 'error') {
+		alert(data.details);
+		return false;
+	}
+	else {
+		alert('Got unexpected data');
+		return false;
+	}
+}
+
+function g(id) {
+	return document.getElementById(id);
+}
+</script>
+
+	<div class="fullscreenLoad" id="spinner">
+		<div id="loader" style="--strands: 10;">
+			<div style="--s: 0;"></div>
+			<div style="--s: 1;"></div>
+			<div style="--s: 2;"></div>
+			<div style="--s: 3;"></div>
+			<div style="--s: 4;"></div>
+			<div style="--s: 5;"></div>
+			<div style="--s: 6;"></div>
+			<div style="--s: 7;"></div>
+			<div style="--s: 8;"></div>
+			<div style="--s: 9;"></div>
+		</div>
+	</div>
+
+	<div class="content">
+		<h1>Store a sample of <span id="fld_id"></span></h1>
+		<div class="rowOfThree">
+			<input type="number" class="rowElem" id="inp_shelfNo" placeholder="Shelf Number">
+			<input type="number" class="rowElem" id="inp_boxNo" placeholder="Box Number">
+			<input type="number" class="rowElem" id="inp_slotNo" placeholder="Slot Number">
+		</div>
+
+		<div class="rowOfTwo">
+			<select id="inp_hostSelect" class="rowElem"> 
+				<option value="unset">		Bacterial Host</option>
+				<option value="TOP10">		TOP10</option>
+				<option value="DH5alpha">	DH5alpha</option>
+				<option value="XL1-blue">	XL1-blue</option>
+				<option value="JM109">		JM109</option>
+				<option value="JM110">		JM110</option>
+				<option value="BL21">		BL21</option>
+				<option value="M15">		M15</option>
+				<option value="Shuffle T7">	Shuffle T7</option>
+				<option value="other">		Other Host:</option>
+			</select>
+			<input type="text" id="inp_hostOther" class="rowElem" placeholder="Other Host">
+		</div>
+
+		<input type="hidden" id="inp_plasmidID" value="">
+
+		<div class="rowOfTwo">
+			<a href="index.html" id="inp_back" class="button rowElem">Back</a>
+			<button id="inp_submit" class="rowElem">Store</button>
+		</div>
+		<p id="validationError" style="text-align: center;"></p>
+	</div>
+
+</body>
+</html>

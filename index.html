@@ -1,0 +1,214 @@
+<!doctype html>
+<html>
+<head>
+	<title>CloneStore</title>
+	<meta charset="UTF-8">
+	<meta name=viewport content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="style.css">
+	<link rel="stylesheet" href="loader.css">
+</head>
+
+<body>
+	<script type="text/javascript" src="api.js"></script>
+	<script type="text/javascript" src="config.js"></script>
+<script>
+const printIconDataURL = 'data:image/svg+xml;charset=utf-8;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBkPSJNMTYgMThoLTh2LTFoOHYxem0tMiAxaC02djFoNnYtMXptMTAtMTR2MTNoLTR2NmgtMTZ2LTZoLTR2LTEzaDR2LTVoMTZ2NWg0em0tMTggMGgxMnYtM2gtMTJ2M3ptMTIgMTBoLTEydjdoMTJ2LTd6bTQtOGgtMjB2OWgydi0zaDE2djNoMnYtOXptLTEuNSAxYy0uMjc2IDAtLjUuMjI0LS41LjVzLjIyNC41LjUuNS41LS4yMjQuNS0uNS0uMjI0LS41LS41LS41eiIvPjwvc3ZnPg==';
+const trashIconDataURL = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBkPSJNMjQgMjAuMTg4bC04LjMxNS04LjIwOSA4LjItOC4yODItMy42OTctMy42OTctOC4yMTIgOC4zMTgtOC4zMS04LjIwMy0zLjY2NiAzLjY2NiA4LjMyMSA4LjI0LTguMjA2IDguMzEzIDMuNjY2IDMuNjY2IDguMjM3LTguMzE4IDguMjg1IDguMjAzeiIvPjwvc3ZnPg==';
+
+window.addEventListener('load', function() {
+	if(window.location.search) {
+		let id = window.location.search.substr(1);
+		getPlasmid(id).then(json => showPlasmidInfo(json));
+		getStorageLocations(id).then(json => listStorageLocations(json));
+	}
+	else {
+		g('spinner').style.display = 'none';
+		g('start').style.display = 'block';
+	}
+
+	g('printButton').addEventListener('click', printLabel);
+	g('searchButton').addEventListener('click', search);
+	g('search').addEventListener('keypress', function(e) {
+		var key = e.which || e.keyCode;
+		if (key === 13) { // 13 is enter
+			search();
+		}
+	});
+});
+
+function showPlasmidInfo(data) {
+	typeCheck(data, 'plasmid');
+
+	let plasmid = data.plasmid;
+
+	g('dateOfCreation').innerText = dateString(plasmid.timeOfCreation);
+	g('dateOfEntry').innerText = dateString(plasmid.timeOfEntry);
+
+	g('plasmidID').innerText = plasmid.id;
+	g('currentPlasmidID').value = plasmid.id;
+	g('createdBy').innerText = plasmid.createdBy;
+	g('initials').innerText = plasmid.initials;
+	g('labNotes').innerText = plasmid.labNotes;
+	g('backbonePlasmid').innerText = plasmid.backbonePlasmid;
+	g('description').innerText = plasmid.description.replace('\n', '<br>');
+
+	g('selectionMarkers').innerText = plasmid.selectionMarkers.join(', ');
+	g('features').innerText = plasmid.features.join(', ');
+
+	let blob = new Blob([plasmid.geneData]);
+	g('downloadButton').href = window.URL.createObjectURL(blob);
+	g('downloadButton').setAttribute('download', `${plasmid.id}.cs.gb`);
+
+	g('storeButton').href = `store.html#${plasmid.id}`;
+
+	g('spinner').style.display = 'none';
+	g('view').style.display = 'block';
+}
+
+function listStorageLocations(data) {
+	typeCheck(data, 'storageLocationList');
+
+	let list = data.locations;
+
+	g('locationList').innerHTML = '';
+
+	if(list.length > 0) {
+		for (var i = 0; i < list.length; i++) {
+			let row = document.createElement('DIV');
+			let loc = list[i].location;
+			let host = list[i].host;
+			row.innerText = `${loc} (${host})`;
+
+			let printIcon = document.createElement('IMG');
+			printIcon.src = printIconDataURL;
+			printIcon.classList.add('locationListIcon');
+			printIcon.addEventListener('click', function() {
+				printLabel(host);
+			});
+
+			let deleteIcon = document.createElement('IMG');
+			deleteIcon.classList.add('locationListIcon');
+			deleteIcon.src = trashIconDataURL;
+			deleteIcon.addEventListener('click', function() {
+				freeStorageLoc(loc);
+			});
+
+			row.appendChild(deleteIcon);
+			row.appendChild(printIcon);
+
+			g('locationList').appendChild(row);
+		}
+	}
+	else {
+		g('locationList').innerHTML = '<i>no storage locations found</i>';
+	}
+}
+
+function search() {
+	let term = g('search').value;
+	window.location = `?${term}`;
+}
+
+function printLabel(host = null) {
+	g('spinner').style.display = 'block';
+	postPrint(g('currentPlasmidID').value, host).then(function(data) {
+		typeCheck(data, 'success');
+		g('spinner').style.display = 'none';
+	});
+}
+
+function freeStorageLoc(location) {
+	let plasmidID = g('currentPlasmidID').value;
+	let confirmMsg = `Remove plasmid ${plasmidID} from storage slot ${location}?`;
+	if(window.confirm(confirmMsg)) {
+		g('spinner').style.display = 'block';
+		deleteStorageLocation(location).then(function(data) {
+			typeCheck(data, 'success');
+			g('spinner').style.display = 'none';
+			getStorageLocations(plasmidID).then(json => listStorageLocations(json));
+		});
+	}
+}
+
+function typeCheck(data, type) {
+	if(data.type === type) {
+		return true;
+	}
+	else if(data.type === 'error') {
+		alert(data.details);
+		return false;
+	}
+	else {
+		alert('Got unexpected data');
+		return false;
+	}
+}
+
+function dateString(timestamp) {
+	let date = new Date(timestamp * 1000);
+
+	let day = date.getDate() + 1;
+	let month = date.getMonth() + 1;
+	let year = date.getFullYear();
+
+	day = (day > 9) ? day : `0${day}`;
+	month = (month > 9) ? month : `0${month}`;
+
+	return `${day}/${month}/${year}`;
+}
+
+function g(id) {
+	return document.getElementById(id);
+}
+</script>
+
+	<div class="fullscreenLoad" id="spinner" style="display: block;">
+		<div id="loader" style="--strands: 10;">
+			<div style="--s: 0;"></div>
+			<div style="--s: 1;"></div>
+			<div style="--s: 2;"></div>
+			<div style="--s: 3;"></div>
+			<div style="--s: 4;"></div>
+			<div style="--s: 5;"></div>
+			<div style="--s: 6;"></div>
+			<div style="--s: 7;"></div>
+			<div style="--s: 8;"></div>
+			<div style="--s: 9;"></div>
+		</div>
+	</div>
+
+	<div id="start" class="page">
+		<div>
+			<h1>CloneStore</h1>
+			<div class="searchbar">
+				<input type="text" id="search" placeholder="View a plasmid...">
+				<svg xmlns="http://www.w3.org/2000/svg" id="searchButton" viewBox="0 0 24 24"><path d="M23.822 20.88l-6.353-6.354c.93-1.465 1.467-3.2 1.467-5.059.001-5.219-4.247-9.467-9.468-9.467s-9.468 4.248-9.468 9.468c0 5.221 4.247 9.469 9.468 9.469 1.768 0 3.421-.487 4.839-1.333l6.396 6.396 3.119-3.12zm-20.294-11.412c0-3.273 2.665-5.938 5.939-5.938 3.275 0 5.94 2.664 5.94 5.938 0 3.275-2.665 5.939-5.94 5.939-3.274 0-5.939-2.664-5.939-5.939z"/></svg>
+			</div>
+			<a href="add.html"><svg id="createButton" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M24 9h-9v-9h-6v9h-9v6h9v9h6v-9h9z"/></svg></a>
+		</div>
+	</div>
+
+	<div id="view" class="page">
+		<input type="hidden" id="currentPlasmidID">
+		<div>
+			<h1>Plasmid Details</h1>
+			<p><b>Name:</b> <span id="plasmidID"></span></p>
+			<p><b>Creator:</b> <span id="createdBy"></span> (<span id="initials"></span>)</p>
+			<p><b>Created:</b> <span id="dateOfCreation"></span>, <b>Stored:</b> <span id="dateOfEntry"></span></p>
+			<p><b>Lab Notes:</b> <span id="labNotes"></span></p>
+			<p><b>Backbone Plasmid:</b> <span id="backbonePlasmid"></span></p>
+			<p><b>Selection Marker:</b> <span id="selectionMarkers"></span></p>
+			<p><b>Plasmid Features:</b> <span id="features"></span></p>
+			<p><b>Description:</b> <span id="description"></span></p>
+			<div class="rowOfThree">
+				<a href="#" class="button rowElem" id="downloadButton">Download</a>
+				<a href="#" class="button rowElem" id="storeButton">Store Sample</a>
+				<a href="#" class="button rowElem" id="printButton">Print Label</a>
+			</div>
+			<h1>Storage Locations</h1>
+			<div id="locationList"></div>
+		</div>
+	</div>
+
+</body>
+</html>

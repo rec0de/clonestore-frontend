@@ -1,0 +1,181 @@
+:root {
+	--background-color: #eeeeee;
+	--text-color: #201410;
+	--highlight-color: #990e10;
+}
+
+body, html{
+	height: 100%;
+	width: 100%;
+	margin: 0;
+	padding: 0;
+	color: var(--text-color);
+	background: var(--background-color);
+	font-family: system;
+}
+
+* {
+	box-sizing: border-box;
+}
+
+::selection {
+	background: white;
+	color: #1e1e1e;
+}
+
+::-moz-selection {
+	background: white;
+	color: #1e1e1e;
+}
+
+.page {
+	position: absolute;
+	width: 100%;
+	min-height: 100%;
+}
+
+.page > div, .content {
+	max-width: 800px;
+	margin: 4rem auto;
+	padding: 1em;
+	position: relative;
+}
+
+#start, #view {
+	display: none;
+}
+
+.searchbar {
+	width: calc(100% - 3.25rem);
+	float: left;
+	background-color: white;
+	border: 1px solid var(--text-color);
+	border-radius: 5px;
+	padding: 0.75rem;
+	overflow: auto;
+}
+
+#search {
+	width: calc(100% - 2rem);
+	background: none;
+	border: none;
+	padding: 0;
+	font-size: 1.25rem;
+	float: left;
+}
+
+#searchButton {
+	cursor: pointer;
+	height: 1.75rem;
+	width: 1.75rem;
+	display: inline-block;
+	float: left;
+}
+
+#createButton {
+	float: left;
+	cursor: pointer;
+	height: 1.75rem;
+	width: 1.75rem;
+	margin: 0.75rem;
+}
+
+#locationList > div {
+	width: 100%;
+	border: 1px solid var(--text-color);
+	border-radius: 5px;
+	padding: 0.75rem;
+	overflow: auto;
+	margin-top: 0.75rem;
+}
+
+.locationListIcon {
+	float: right;
+	margin-left: 1rem;
+	cursor: pointer;
+}
+
+.rowOfThree, .rowOfTwo, .rowOfOne {
+	overflow: auto;
+	width: 100%;
+	margin-bottom: 0.75rem;
+}
+
+.rowOfThree > .rowElem {
+	float: left;
+	width: calc(33.333% - 0.5rem);
+	margin-right: 0.75rem;
+}
+
+.rowOfTwo > .rowElem {
+	float: left;
+	width: calc(50% - 0.375rem);
+	margin-right: 0.75rem;
+}
+
+.rowOfOne > .rowElem {
+	float: left;
+	width: 100%;
+}
+
+.rowOfThree > .rowElem:nth-child(3n), .rowOfTwo > .rowElem:nth-child(2n) {
+	margin-right: 0;
+}
+
+.label {
+	font-size: 1.25rem;
+	padding: 0.75rem;
+}
+
+a, a:visited, a:active {
+	text-decoration: none;
+	color: var(--text-color);
+}
+
+a:hover {
+	color: var(--highlight-color);
+}
+
+button, .button {
+	border: 1px solid var(--text-color);
+	border-radius: 5px;
+	background-color: white;
+	padding: 0.75rem;
+	color: var(--text-color);
+	margin-right: 0.75rem;
+	font-size: 1rem;
+	font-family: unset;
+	font-weight: unset;
+	cursor: pointer;
+	text-align: center;
+}
+
+button:last-of-type {
+	margin-right: 0;
+}
+
+input, select, textarea {
+	background: white;
+	font-size: 1.25rem;
+	padding: 0.75rem;
+	border: 1px solid var(--text-color);
+	border-radius: 5px;
+}
+
+textarea {
+	resize: vertical;
+	min-height: 15rem;
+}
+
+input:disabled {
+	border: 1px solid #707070;
+}
+
+
+/* Define the "system" font family */
+@font-face {
+	font-family: system;
+	font-style: normal;
+	font-weight: 300;
+	src: local(".SFNSText-Light"), local(".HelveticaNeueDeskInterface-Light"), local(".LucidaGrandeUI"), local("Ubuntu Light"), local("Segoe UI Light"), local("Roboto-Light"), local("DroidSans"), local("Tahoma"), local("Helvetica");
+}
