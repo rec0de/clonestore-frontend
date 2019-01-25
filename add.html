@@ -24,7 +24,22 @@ window.addEventListener('load', function() {
 		g('inp_features_otherPanel').style.display = g('inp_features_other').checked ? 'block' : 'none';
 	});
 
+	g('inp_features_moclo').addEventListener('change', function() {
+		g('inp_features_moclo_detailPanel').style.display = g('inp_features_moclo').checked ? 'block' : 'none';
+	});
+
+	g('inp_features_goldenbraid').addEventListener('change', function() {
+		g('inp_features_goldenbraid_detailPanel').style.display = g('inp_features_goldenbraid').checked ? 'block' : 'none';
+	});
+
+	g('inp_features_goldenbraid_pupd').addEventListener('change', function() {
+		g('inp_features_pupd_detailPanel').style.display = g('inp_features_goldenbraid_pupd').checked ? 'block' : 'none';
+	});
+
 	g('inp_features_otherPanel').style.display = g('inp_features_other').checked ? 'block' : 'none';
+	g('inp_features_goldenbraid_detailPanel').style.display = g('inp_features_goldenbraid').checked ? 'block' : 'none';
+	g('inp_features_moclo_detailPanel').style.display = g('inp_features_moclo').checked ? 'block' : 'none';
+	g('inp_features_pupd_detailPanel').style.display = g('inp_features_goldenbraid_pupd').checked ? 'block' : 'none';
 	g('inp_selMark_otherPanel').style.display = g('inp_selMark_other').checked ? 'block' : 'none';
 });
 
@@ -61,12 +76,9 @@ function submitPlasmid() {
 
 	plasmid.selectionMarkers = [];
 
-	for (let i = 0; i < markers.length; i++) {
-		if(g(markers[i]).checked) {
-			plasmid.selectionMarkers.push(g(markers[i]).value);
-		}
-	}
+	pushIfChecked(markers, plasmid.selectionMarkers);
 
+	// Evaluate custom selection markers
 	if(g('inp_selMark_other').checked) {
 		let otherMarkers = g('inp_selMark_otherValue').value.split(',');
 		for (let i = 0; i < otherMarkers.length; i++) {
@@ -76,16 +88,30 @@ function submitPlasmid() {
 
 	plasmid.features = [];
 
-	for (let i = 0; i < features.length; i++) {
-		if(g(features[i]).checked) {
-			plasmid.features.push(g(features[i]).value);
-		}
-	}
+	pushIfChecked(features, plasmid.features);
 
+	// Evaluate custom features
 	if(g('inp_features_other').checked) {
 		let otherFeatures = g('inp_features_otherValue').value.split(',');
 		for (let i = 0; i < otherFeatures.length; i++) {
 			plasmid.features.push(otherFeatures[i].trim());
+		}
+	}
+
+	// Evaluate MoClo based features
+	if(g('inp_features_moclo').checked) {
+		let mocloFeatures = ['inp_features_moclo_l0', 'inp_features_moclo_l1', 'inp_features_moclo_l2'];
+		pushIfChecked(mocloFeatures, plasmid.features);
+	}
+
+	// Evaluate Golden Braid based features
+	if(g('inp_features_goldenbraid').checked) {
+		let gbFeatures = ['inp_features_goldenbraid_pupd', 'inp_features_goldenbraid_alpha', 'inp_features_goldenbraid_omega', 'inp_features_goldenbraid_other'];
+		pushIfChecked(gbFeatures, plasmid.features);
+
+		if(g('inp_features_goldenbraid_pupd').checked) {
+			let pupdFeatures = ['inp_features_pupd_promoter', 'inp_features_pupd_targeting', 'inp_features_pupd_orf', 'inp_features_pupd_terminator'];
+			pushIfChecked(pupdFeatures, plasmid.features);
 		}
 	}
 
@@ -102,6 +128,17 @@ function submitPlasmid() {
 			});
 		};
 		reader.readAsText(g('inp_gbfile').files[0]);
+	}
+	else {
+		validationError('Please select a .gb file');
+	}
+}
+
+function pushIfChecked(ids, target) {
+	for (let i = 0; i < ids.length; i++) {
+		if(g(ids[i]).checked) {
+			target.push(g(ids[i]).value);
+		}
 	}
 }
 
@@ -251,6 +288,68 @@ function g(id) {
 			<div class="rowElem">
 				<input type="checkbox" id="inp_features_other">
 				<label for="inp_features_other">Other</label>
+			</div>
+		</div>
+
+		<div id="inp_features_moclo_detailPanel" style="display: none;">
+			<p><b>MoClo details</b></p>
+			<div class="rowOfThree" >
+				<div class="rowElem">
+					<input type="checkbox" id="inp_features_moclo_l0" value="MoClo Level 0">
+					<label for="inp_features_moclo_l0">Level 0</label>
+				</div>
+				<div class="rowElem">
+					<input type="checkbox" id="inp_features_moclo_l1" value="MoClo Level 1">
+					<label for="inp_features_moclo_l1">Level 1</label>
+				</div>
+				<div class="rowElem">
+					<input type="checkbox" id="inp_features_moclo_l2" value="MoClo Level 2">
+					<label for="inp_features_moclo_l2">Level 2</label>
+				</div>
+			</div>
+		</div>
+
+		<div id="inp_features_goldenbraid_detailPanel" style="display: none;">
+			<p><b>Golden Braid details</b></p>
+			<div class="rowOfThree">
+				<div class="rowElem">
+					<input type="checkbox" id="inp_features_goldenbraid_pupd" value="pUPD">
+					<label for="inp_features_goldenbraid_pupd">pUPD</label>
+				</div>
+				<div class="rowElem">
+					<input type="checkbox" id="inp_features_goldenbraid_alpha" value="Alpha level">
+					<label for="inp_features_goldenbraid_alpha">Alpha level</label>
+				</div>
+				<div class="rowElem">
+					<input type="checkbox" id="inp_features_goldenbraid_omega" value="Omega level">
+					<label for="inp_features_goldenbraid_omega">Omega level</label>
+				</div>
+				<div class="rowElem">
+					<input type="checkbox" id="inp_features_goldenbraid_other" value="Golden Braid Other">
+					<label for="inp_features_goldenbraid_other">other</label>
+				</div>
+			</div>
+		</div>
+
+		<div id="inp_features_pupd_detailPanel" style="display: none;">
+			<p><b>pUPD details</b></p>
+			<div class="rowOfThree">
+				<div class="rowElem">
+					<input type="checkbox" id="inp_features_pupd_promoter", value="Promoter">
+					<label for="inp_features_pupd_promoter">Promoter</label>
+				</div>
+				<div class="rowElem">
+					<input type="checkbox" id="inp_features_pupd_targeting" value="Targeting Sequence">
+					<label for="inp_features_pupd_targeting">Targeting Sequence</label>
+				</div>
+				<div class="rowElem">
+					<input type="checkbox" id="inp_features_pupd_orf" value="ORF">
+					<label for="inp_features_pupd_orf">ORF</label>
+				</div>
+				<div class="rowElem">
+					<input type="checkbox" id="inp_features_pupd_terminator" value="Terminator">
+					<label for="inp_features_pupd_terminator">Terminator</label>
+				</div>
 			</div>
 		</div>
 
