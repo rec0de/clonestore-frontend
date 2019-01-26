@@ -26,6 +26,10 @@ function deleteStorageLocation(loc) {
 	return request('DELETE', `${API_HOST}/storage/${loc}`);
 }
 
+function putPrinterConfig(url, authKey, name = '', location = '') {
+	return request('PUT', `${API_HOST}/print`);
+}
+
 function postPrint(id, host = null, copies = 1) {
 	return request('POST', `${API_HOST}/print/${id}`, {host, copies});
 }

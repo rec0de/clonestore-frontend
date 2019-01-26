@@ -1,0 +1,97 @@
+<!doctype html>
+<html>
+<head>
+	<title>CloneStore</title>
+	<meta charset="UTF-8">
+	<meta name=viewport content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="css/style.css">
+	<link rel="stylesheet" href="css/loader.css">
+</head>
+
+<body>
+	<script type="text/javascript" src="js/api.js"></script>
+	<script type="text/javascript" src="js/config.js"></script>
+<script>
+window.addEventListener('load', function() {
+
+	g('inp_submit').addEventListener('click', function() {
+		let url = g('inp_url').value;
+		let authKey = g('inp_authKey').value;
+
+		if(url === '') {
+			validationError('Please enter the printer URL');
+		}
+		else if(authKey === '') {
+			validationError('Please enter the authentication key');
+		}
+		else {
+			g('spinner').style.display = 'block';
+			putPrinterConfig(url, authKey).then(function(response) {
+				if(typeCheck(response, 'success')) {
+					window.location = 'index.html';
+				}
+				else {
+					g('spinner').style.display = 'none';
+				}
+			});
+		}
+	});
+});
+
+function validationError(msg) {
+	g('validationError').innerText = msg;
+}
+
+function typeCheck(data, type) {
+	if(data.type === type) {
+		return true;
+	}
+	else if(data.type === 'error') {
+		alert(data.details);
+		return false;
+	}
+	else {
+		alert('Got unexpected data');
+		return false;
+	}
+}
+
+function g(id) {
+	return document.getElementById(id);
+}
+</script>
+
+	<div class="fullscreenLoad" id="spinner">
+		<div id="loader" style="--strands: 10;">
+			<div style="--s: 0;"></div>
+			<div style="--s: 1;"></div>
+			<div style="--s: 2;"></div>
+			<div style="--s: 3;"></div>
+			<div style="--s: 4;"></div>
+			<div style="--s: 5;"></div>
+			<div style="--s: 6;"></div>
+			<div style="--s: 7;"></div>
+			<div style="--s: 8;"></div>
+			<div style="--s: 9;"></div>
+		</div>
+	</div>
+
+	<div class="content">
+		<h1>Printer Settings</h1>
+		<div class="rowOfOne">
+			<input type="text" class="rowElem" id="inp_url" placeholder="Print Server URL">
+		</div>
+
+		<div class="rowOfOne">
+			<input type="text" class="rowElem" id="inp_authKey" placeholder="Authentication Key">
+		</div>
+
+		<div class="rowOfTwo">
+			<a href="index.html" id="inp_back" class="button rowElem">Back</a>
+			<button id="inp_submit" class="rowElem">Update Settings</button>
+		</div>
+		<p id="validationError" style="text-align: center;"></p>
+	</div>
+
+</body>
+</html>
