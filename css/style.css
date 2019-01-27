@@ -19,13 +19,13 @@ body, html{
 }
 
 ::selection {
-	background: white;
-	color: #1e1e1e;
+	background: #1e1e1e;
+	color: white;
 }
 
 ::-moz-selection {
-	background: white;
-	color: #1e1e1e;
+	background: #1e1e1e;
+	color: white;
 }
 
 .page {
@@ -87,13 +87,33 @@ body, html{
 	height: 2.5rem;
 }
 
-#locationList > div {
+#locationList > div, #searchResList > div {
 	width: 100%;
 	border: 1px solid var(--text-color);
 	border-radius: 5px;
 	padding: 0.75rem;
 	overflow: auto;
 	margin-top: 0.75rem;
+}
+
+#searchResList {
+	width: 100%;
+	float: left;
+}
+
+#searchResList > div {
+	cursor: pointer;
+	transition: background .2s ease;
+}
+
+#searchResList > div:hover {
+	background: white;
+}
+
+#searchResList > p {
+	text-align: center;
+	margin-top: 0.75rem;
+	width: 100%;
 }
 
 .locationListIcon {

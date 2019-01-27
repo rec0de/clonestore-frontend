@@ -1,10 +1,6 @@
 // API_HOST has to be set in config.js
 
-function debugCall(method, url, data = {}) {
-	request(method, url, data)
-		.then(data => console.log(data))
-		.catch(error => console.error(error));
-}
+// Plasmid endpoint
 
 function getPlasmid(id) {
 	return request('GET', `${API_HOST}/plasmid/${id}`);
@@ -13,6 +9,8 @@ function getPlasmid(id) {
 function postPlasmid(plasmidString) {
 	return request('POST', `${API_HOST}/plasmid`, {'data': plasmidString});
 }
+
+// Storage endpoint
 
 function putStorage(loc, id, host) {
 	return request('PUT', `${API_HOST}/storage/${loc}`, {'entry': id, host});
@@ -26,12 +24,26 @@ function deleteStorageLocation(loc) {
 	return request('DELETE', `${API_HOST}/storage/${loc}`);
 }
 
+// Print endpoint
+
 function putPrinterConfig(url, authKey, name = '', location = '') {
 	return request('PUT', `${API_HOST}/print`);
 }
 
 function postPrint(id, host = null, copies = 1) {
 	return request('POST', `${API_HOST}/print/${id}`, {host, copies});
+}
+
+// Search endpoint
+
+function getSearch(query, mode = 'any') {
+	return request('GET', `${API_HOST}/search/${mode}?query=${query}`);
+}
+
+function debugCall(method, url, data = {}) {
+	request(method, url, data)
+		.then(data => console.log(data))
+		.catch(error => console.error(error));
 }
 
 function request(method, url, data = {}) {
