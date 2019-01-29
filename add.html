@@ -16,6 +16,17 @@ window.addEventListener('load', function() {
 
 	g('inp_submit').addEventListener('click', submitPlasmid);
 
+	// Event listeners to show / hide appropriate form sections
+
+	g('inp_localEntry').addEventListener('change', function() {
+		if(g('inp_localEntry').checked) {
+			g('inp_foreignName').setAttribute('disabled', 'disabled');
+		}
+		else {
+			g('inp_foreignName').removeAttribute('disabled');
+		}
+	});
+
 	g('inp_selMark_other').addEventListener('change', function() {
 		g('inp_selMark_otherPanel').style.display = g('inp_selMark_other').checked ? 'block' : 'none';
 	});
@@ -36,11 +47,20 @@ window.addEventListener('load', function() {
 		g('inp_features_pupd_detailPanel').style.display = g('inp_features_goldenbraid_pupd').checked ? 'block' : 'none';
 	});
 
+	// Initialize form state correctly
+
 	g('inp_features_otherPanel').style.display = g('inp_features_other').checked ? 'block' : 'none';
 	g('inp_features_goldenbraid_detailPanel').style.display = g('inp_features_goldenbraid').checked ? 'block' : 'none';
 	g('inp_features_moclo_detailPanel').style.display = g('inp_features_moclo').checked ? 'block' : 'none';
 	g('inp_features_pupd_detailPanel').style.display = g('inp_features_goldenbraid_pupd').checked ? 'block' : 'none';
 	g('inp_selMark_otherPanel').style.display = g('inp_selMark_other').checked ? 'block' : 'none';
+
+	if(g('inp_localEntry').checked) {
+		g('inp_foreignName').setAttribute('disabled', 'disabled');
+	}
+	else {
+		g('inp_foreignName').removeAttribute('disabled');
+	}
 });
 
 function submitPlasmid() {
@@ -66,6 +86,10 @@ function submitPlasmid() {
 	];
 
 	let plasmid = {};
+
+	if(!g('inp_localEntry').checked) {
+		plasmid.id = g('inp_foreignName').value;
+	}
 
 	plasmid.createdBy = g('inp_createdBy').value;
 	plasmid.initials = g('inp_initials').value;
@@ -188,6 +212,14 @@ function g(id) {
 		<div class="rowOfTwo">
 			<input type="text" class="rowElem" id="inp_createdBy" placeholder="Creator Name">
 			<input type="text" class="rowElem" id="inp_initials" placeholder="Initials">
+		</div>
+
+		<div class="rowOfTwo">
+			<div class="rowElem">
+				<input type="checkbox" id="inp_localEntry">
+				<label for="inp_localEntry">Prepared in own lab</label>
+			</div>
+			<input type="text" id="inp_foreignName" class="rowElem" placeholder="Plasmid Name / ID">
 		</div>
 
 		<div class="rowOfTwo">
