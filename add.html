@@ -88,13 +88,44 @@ function submitPlasmid() {
 	let plasmid = {};
 
 	if(!g('inp_localEntry').checked) {
+		let id = g('inp_foreignName').value;
+		if(!id || id === '') {
+			validationError('Please enter the plasmid name for non-locally prepared plasmids');
+			return;
+		}
+
 		plasmid.id = g('inp_foreignName').value;
 	}
 
-	plasmid.createdBy = g('inp_createdBy').value;
-	plasmid.initials = g('inp_initials').value;
-	plasmid.timeOfCreation = g('inp_timeOfCreation').valueAsNumber / 1000;
-	plasmid.description = g('inp_description').value;
+	let createdBy = g('inp_createdBy').value;
+	let initials = g('inp_initials').value.toUpperCase();
+	let timeOfCreation = g('inp_timeOfCreation').valueAsNumber;
+	let description = g('inp_description').value;
+
+	if(!initials || initials === '') {
+		validationError('Please enter your initials');
+		return;
+	}
+
+	if(!createdBy || createdBy === '') {
+		validationError('Please enter your name');
+		return;
+	}
+
+	if(!timeOfCreation || timeOfCreation < 1) {
+		validationError('Please select a creation date');
+		return;
+	}
+
+	if(!description || description === '') {
+		validationError('Please provide a description');
+		return;
+	}
+
+	plasmid.createdBy = createdBy;
+	plasmid.initials = initials;
+	plasmid.timeOfCreation = timeOfCreation / 1000;
+	plasmid.description = description;
 	plasmid.labNotes = g('inp_labNotes').value;
 	plasmid.backbonePlasmid = g('inp_backbone').value;
 
