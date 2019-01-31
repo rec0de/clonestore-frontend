@@ -144,7 +144,7 @@ function showSearchResults(data) {
 	}
 }
 
-function printLabel(host = null) {
+function printLabel(host = '') {
 	g('spinner').style.display = 'block';
 	postPrint(g('currentPlasmidID').value, host).then(function(data) {
 		typeCheck(data, 'success');
@@ -255,6 +255,9 @@ function g(id) {
 			</div>
 			<h1>Storage Locations</h1>
 			<div id="locationList"></div>
+			<div class="rowOfThree">
+				<a href="index.html" class="button rowElem">Back</a>
+			</div>
 		</div>
 	</div>
 
