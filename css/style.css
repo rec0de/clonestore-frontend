@@ -87,6 +87,10 @@ body, html{
 	height: 2.5rem;
 }
 
+#locationList {
+	margin-bottom: 0.75rem;
+}
+
 #locationList > div, #searchResList > div {
 	width: 100%;
 	border: 1px solid var(--text-color);
