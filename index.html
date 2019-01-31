@@ -17,7 +17,7 @@ const trashIconDataURL = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3
 
 window.addEventListener('load', function() {
 	if(window.location.search) {
-		let id = window.location.search.substr(1);
+		const id = window.location.search.substr(1);
 		getPlasmid(id).then(json => showPlasmidInfo(json));
 		getStorageLocations(id).then(json => listStorageLocations(json));
 	}
@@ -31,7 +31,7 @@ window.addEventListener('load', function() {
 		printLabel();
 	});
 	g('search').addEventListener('keypress', function(e) {
-		var key = e.which || e.keyCode;
+		const key = e.which || e.keyCode;
 		if (key === 13) { // 13 is enter
 			search();
 		}
@@ -41,7 +41,7 @@ window.addEventListener('load', function() {
 function showPlasmidInfo(data) {
 	typeCheck(data, 'plasmid');
 
-	let plasmid = data.plasmid;
+	const plasmid = data.plasmid;
 
 	g('dateOfCreation').innerText = dateString(plasmid.timeOfCreation);
 	g('dateOfEntry').innerText = dateString(plasmid.timeOfEntry);
@@ -52,12 +52,12 @@ function showPlasmidInfo(data) {
 	g('initials').innerText = plasmid.initials;
 	g('labNotes').innerText = plasmid.labNotes;
 	g('backbonePlasmid').innerText = plasmid.backbonePlasmid;
-	g('description').innerText = plasmid.description.replace('\n', '<br>');
+	g('description').innerHTML = plasmid.description.replace(/\n/g, '<br>');
 
 	g('selectionMarkers').innerText = plasmid.selectionMarkers.join(', ');
 	g('features').innerText = plasmid.features.join(', ');
 
-	let blob = new Blob([plasmid.geneData]);
+	const blob = new Blob([plasmid.geneData]);
 	g('downloadButton').href = window.URL.createObjectURL(blob);
 	g('downloadButton').setAttribute('download', `${plasmid.id}.cs.gb`);
 
@@ -70,25 +70,25 @@ function showPlasmidInfo(data) {
 function listStorageLocations(data) {
 	typeCheck(data, 'storageLocationList');
 
-	let list = data.locations;
+	const list = data.locations;
 
 	g('locationList').innerHTML = '';
 
 	if(list.length > 0) {
-		for (var i = 0; i < list.length; i++) {
-			let row = document.createElement('DIV');
-			let loc = list[i].location;
-			let host = list[i].host;
+		for (let i = 0; i < list.length; i++) {
+			const row = document.createElement('DIV');
+			const loc = list[i].location;
+			const host = list[i].host;
 			row.innerText = `${loc} (${host})`;
 
-			let printIcon = document.createElement('IMG');
+			const printIcon = document.createElement('IMG');
 			printIcon.src = printIconDataURL;
 			printIcon.classList.add('locationListIcon');
 			printIcon.addEventListener('click', function() {
 				printLabel(host);
 			});
 
-			let deleteIcon = document.createElement('IMG');
+			const deleteIcon = document.createElement('IMG');
 			deleteIcon.classList.add('locationListIcon');
 			deleteIcon.src = trashIconDataURL;
 			deleteIcon.addEventListener('click', function() {
@@ -108,27 +108,27 @@ function listStorageLocations(data) {
 
 function search() {
 	g('spinner').style.display = 'block';
-	let term = g('search').value;
+	const term = g('search').value;
 
 	getSearch(term).then(showSearchResults);
 }
 
 function showSearchResults(data) {
-	let valid = typeCheck(data, 'searchResultList');
+	const valid = typeCheck(data, 'searchResultList');
 	g('spinner').style.display = 'none';
 
-	let list = data.results;
-	let container = g('searchResList');
+	const list = data.results;
+	const container = g('searchResList');
 
 	container.innerHTML = '';
 
 	if(valid && list.length > 0) {
-		for (var i = 0; i < list.length; i++) {
-			let row = document.createElement('DIV');
+		for (let i = 0; i < list.length; i++) {
+			const row = document.createElement('DIV');
 
-			let id = list[i].id;
-			let desc = list[i].description;
-			let creator = list[i].createdBy;
+			const id = list[i].id;
+			const desc = list[i].description;
+			const creator = list[i].createdBy;
 
 			row.innerHTML = `<b>${id}</b> - ${creator} <br> ${elide(desc)}`;
 
@@ -153,8 +153,8 @@ function printLabel(host = null) {
 }
 
 function freeStorageLoc(location) {
-	let plasmidID = g('currentPlasmidID').value;
-	let confirmMsg = `Remove plasmid ${plasmidID} from storage slot ${location}?`;
+	const plasmidID = g('currentPlasmidID').value;
+	const confirmMsg = `Remove plasmid ${plasmidID} from storage slot ${location}?`;
 	if(window.confirm(confirmMsg)) {
 		g('spinner').style.display = 'block';
 		deleteStorageLocation(location).then(function(data) {
@@ -180,11 +180,11 @@ function typeCheck(data, type) {
 }
 
 function dateString(timestamp) {
-	let date = new Date(timestamp * 1000);
+	const date = new Date(timestamp * 1000);
 
 	let day = date.getDate() + 1;
 	let month = date.getMonth() + 1;
-	let year = date.getFullYear();
+	const year = date.getFullYear();
 
 	day = (day > 9) ? day : `0${day}`;
 	month = (month > 9) ? month : `0${month}`;
@@ -192,9 +192,9 @@ function dateString(timestamp) {
 	return `${day}/${month}/${year}`;
 }
 
-function elide(text, length = 500) {
-	if(text.length > 500) {
-		return text.substr(length - 3) + '...';
+function elide(text, length = 200) {
+	if(text.length > length) {
+		return text.substring(0, length - 3) + '...';
 	}
 	else {
 		return text;
@@ -247,7 +247,7 @@ function g(id) {
 			<p><b>Backbone Plasmid:</b> <span id="backbonePlasmid"></span></p>
 			<p><b>Selection Marker:</b> <span id="selectionMarkers"></span></p>
 			<p><b>Plasmid Features:</b> <span id="features"></span></p>
-			<p><b>Description:</b> <span id="description"></span></p>
+			<p><b>Description:</b> <div id="description"></div></p>
 			<div class="rowOfThree">
 				<a href="#" class="button rowElem" id="downloadButton">Download</a>
 				<a href="#" class="button rowElem" id="storeButton">Store Sample</a>
