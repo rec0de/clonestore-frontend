@@ -17,7 +17,6 @@ window.addEventListener('load', function() {
 	g('inp_submit').addEventListener('click', submitPlasmid);
 
 	// Event listeners to show / hide appropriate form sections
-
 	g('inp_localEntry').addEventListener('change', function() {
 		if(g('inp_localEntry').checked) {
 			g('inp_foreignName').setAttribute('disabled', 'disabled');
@@ -31,28 +30,10 @@ window.addEventListener('load', function() {
 		g('inp_selMark_otherPanel').style.display = g('inp_selMark_other').checked ? 'block' : 'none';
 	});
 
-	g('inp_features_other').addEventListener('change', function() {
-		g('inp_features_otherPanel').style.display = g('inp_features_other').checked ? 'block' : 'none';
-	});
-
-	g('inp_features_moclo').addEventListener('change', function() {
-		g('inp_features_moclo_detailPanel').style.display = g('inp_features_moclo').checked ? 'block' : 'none';
-	});
-
-	g('inp_features_goldenbraid').addEventListener('change', function() {
-		g('inp_features_goldenbraid_detailPanel').style.display = g('inp_features_goldenbraid').checked ? 'block' : 'none';
-	});
-
-	g('inp_features_goldenbraid_pupd').addEventListener('change', function() {
-		g('inp_features_pupd_detailPanel').style.display = g('inp_features_goldenbraid_pupd').checked ? 'block' : 'none';
-	});
+	document.querySelectorAll('input[type=radio]').forEach(elem => elem.addEventListener('change', updateFeaturePanelVisibility));
 
 	// Initialize form state correctly
-
-	g('inp_features_otherPanel').style.display = g('inp_features_other').checked ? 'block' : 'none';
-	g('inp_features_goldenbraid_detailPanel').style.display = g('inp_features_goldenbraid').checked ? 'block' : 'none';
-	g('inp_features_moclo_detailPanel').style.display = g('inp_features_moclo').checked ? 'block' : 'none';
-	g('inp_features_pupd_detailPanel').style.display = g('inp_features_goldenbraid_pupd').checked ? 'block' : 'none';
+	updateFeaturePanelVisibility();
 	g('inp_selMark_otherPanel').style.display = g('inp_selMark_other').checked ? 'block' : 'none';
 
 	if(g('inp_localEntry').checked) {
@@ -62,6 +43,13 @@ window.addEventListener('load', function() {
 		g('inp_foreignName').removeAttribute('disabled');
 	}
 });
+
+function updateFeaturePanelVisibility() {
+	g('inp_features_otherPanel').style.display = g('inp_features_other').checked ? 'block' : 'none';
+	g('inp_features_goldenbraid_detailPanel').style.display = g('inp_features_goldenbraid').checked ? 'block' : 'none';
+	g('inp_features_moclo_detailPanel').style.display = g('inp_features_moclo').checked ? 'block' : 'none';
+	g('inp_features_pupd_detailPanel').style.display = g('inp_features_goldenbraid').checked && g('inp_features_goldenbraid_pupd').checked ? 'block' : 'none';
+}
 
 function submitPlasmid() {
 	let markers = [
@@ -75,8 +63,6 @@ function submitPlasmid() {
 	];
 
 	let features = [
-		'inp_features_goldenbraid',
-		'inp_features_moclo',
 		'inp_features_cloningvector',
 		'inp_features_bacterialexpression',
 		'inp_features_yeastvector',
@@ -161,12 +147,24 @@ function submitPlasmid() {
 
 	// Evaluate Golden Braid based features
 	if(g('inp_features_goldenbraid').checked) {
-		let gbFeatures = ['inp_features_goldenbraid_pupd', 'inp_features_goldenbraid_alpha', 'inp_features_goldenbraid_omega', 'inp_features_goldenbraid_other'];
+		let gbFeatures = ['inp_features_goldenbraid_alpha', 'inp_features_goldenbraid_omega', 'inp_features_goldenbraid_other'];
 		pushIfChecked(gbFeatures, plasmid.features);
 
 		if(g('inp_features_goldenbraid_pupd').checked) {
-			let pupdFeatures = ['inp_features_pupd_promoter', 'inp_features_pupd_targeting', 'inp_features_pupd_orf', 'inp_features_pupd_terminator'];
-			pushIfChecked(pupdFeatures, plasmid.features);
+			let overhang = g('inp_features_pupd_overhang').value;
+
+			if(g('inp_features_pupd_promoter').checked) {
+				plasmid.features.push(g('inp_features_pupd_promoter').value + ' Overhang: ' + overhang);
+			}
+			else if(g('inp_features_pupd_targeting')) {
+				plasmid.features.push(g('inp_features_pupd_targeting').value + ' Overhang: ' + overhang);
+			}
+			else if(g('inp_features_pupd_orf')) {
+				plasmid.features.push(g('inp_features_pupd_orf').value + ' Overhang: ' + overhang);
+			}
+			else if(g('inp_features_pupd_terminator')) {
+				plasmid.features.push(g('inp_features_pupd_terminator').value + ' Overhang: ' + overhang);
+			}
 		}
 	}
 
@@ -317,39 +315,39 @@ function g(id) {
 
 		<div class="rowOfThree">
 			<div class="rowElem">
-				<input type="checkbox" id="inp_features_goldenbraid" value="Golden Braid">
+				<input type="radio" name="inp_features_main" id="inp_features_goldenbraid" value="Golden Braid">
 				<label for="inp_features_goldenbraid">Golden Braid</label>
 			</div>
 			<div class="rowElem">
-				<input type="checkbox" id="inp_features_moclo" value="MoClo">
+				<input type="radio" name="inp_features_main" id="inp_features_moclo" value="MoClo">
 				<label for="inp_features_moclo">MoClo</label>
 			</div>
 			<div class="rowElem">
-				<input type="checkbox" id="inp_features_cloningvector" value="Cloning Vector">
+				<input type="radio" name="inp_features_main" id="inp_features_cloningvector" value="Cloning Vector">
 				<label for="inp_features_cloningvector">Cloning Vector</label>
 			</div>
 			<div class="rowElem">
-				<input type="checkbox" id="inp_features_bacterialexpression" value="Bacterial Expression">
+				<input type="radio" name="inp_features_main" id="inp_features_bacterialexpression" value="Bacterial Expression">
 				<label for="inp_features_bacterialexpression">Bacterial Expression</label>
 			</div>
 			<div class="rowElem">
-				<input type="checkbox" id="inp_features_yeastvector" value="Yeast Vector">
+				<input type="radio" name="inp_features_main" id="inp_features_yeastvector" value="Yeast Vector">
 				<label for="inp_features_yeastvector">Yeast Vector</label>
 			</div>
 			<div class="rowElem">
-				<input type="checkbox" id="inp_features_magnicon" value="MagnIcon">
+				<input type="radio" name="inp_features_main" id="inp_features_magnicon" value="MagnIcon">
 				<label for="inp_features_magnicon">MagnIcon</label>
 			</div>
 			<div class="rowElem">
-				<input type="checkbox" id="inp_features_chloroplasttransformation" value="Chloroplast transformation">
+				<input type="radio" name="inp_features_main" id="inp_features_chloroplasttransformation" value="Chloroplast transformation">
 				<label for="inp_features_chloroplasttransformation">Chloroplast transformation</label>
 			</div>
 			<div class="rowElem">
-				<input type="checkbox" id="inp_features_miscellaneous" value="miscellaneous">
+				<input type="radio" name="inp_features_main" id="inp_features_miscellaneous" value="miscellaneous">
 				<label for="inp_features_miscellaneous">miscellaneous</label>
 			</div>
 			<div class="rowElem">
-				<input type="checkbox" id="inp_features_other">
+				<input type="radio" name="inp_features_main" id="inp_features_other">
 				<label for="inp_features_other">Other</label>
 			</div>
 		</div>
@@ -358,15 +356,15 @@ function g(id) {
 			<p><b>MoClo details</b></p>
 			<div class="rowOfThree" >
 				<div class="rowElem">
-					<input type="checkbox" id="inp_features_moclo_l0" value="MoClo Level 0">
+					<input type="radio" name="inp_features_moclo_details" id="inp_features_moclo_l0" value="MoClo Level 0">
 					<label for="inp_features_moclo_l0">Level 0</label>
 				</div>
 				<div class="rowElem">
-					<input type="checkbox" id="inp_features_moclo_l1" value="MoClo Level 1">
+					<input type="radio" name="inp_features_moclo_details" id="inp_features_moclo_l1" value="MoClo Level 1">
 					<label for="inp_features_moclo_l1">Level 1</label>
 				</div>
 				<div class="rowElem">
-					<input type="checkbox" id="inp_features_moclo_l2" value="MoClo Level 2">
+					<input type="radio" name="inp_features_moclo_details" id="inp_features_moclo_l2" value="MoClo Level 2">
 					<label for="inp_features_moclo_l2">Level 2</label>
 				</div>
 			</div>
@@ -376,19 +374,19 @@ function g(id) {
 			<p><b>Golden Braid details</b></p>
 			<div class="rowOfThree">
 				<div class="rowElem">
-					<input type="checkbox" id="inp_features_goldenbraid_pupd" value="pUPD">
+					<input type="radio" name="inp_features_goldenbraid_details" id="inp_features_goldenbraid_pupd" value="pUPD">
 					<label for="inp_features_goldenbraid_pupd">pUPD</label>
 				</div>
 				<div class="rowElem">
-					<input type="checkbox" id="inp_features_goldenbraid_alpha" value="Alpha level">
+					<input type="radio" name="inp_features_goldenbraid_details" id="inp_features_goldenbraid_alpha" value="Golden Braid Alpha level">
 					<label for="inp_features_goldenbraid_alpha">Alpha level</label>
 				</div>
 				<div class="rowElem">
-					<input type="checkbox" id="inp_features_goldenbraid_omega" value="Omega level">
+					<input type="radio" name="inp_features_goldenbraid_details" id="inp_features_goldenbraid_omega" value="Golden Braid Omega level">
 					<label for="inp_features_goldenbraid_omega">Omega level</label>
 				</div>
 				<div class="rowElem">
-					<input type="checkbox" id="inp_features_goldenbraid_other" value="Golden Braid Other">
+					<input type="radio" name="inp_features_goldenbraid_details" id="inp_features_goldenbraid_other" value="Golden Braid Other">
 					<label for="inp_features_goldenbraid_other">other</label>
 				</div>
 			</div>
@@ -398,21 +396,24 @@ function g(id) {
 			<p><b>pUPD details</b></p>
 			<div class="rowOfThree">
 				<div class="rowElem">
-					<input type="checkbox" id="inp_features_pupd_promoter", value="Promoter">
+					<input type="radio" name="inp_features_pupd_details" id="inp_features_pupd_promoter", value="pUPD Promoter">
 					<label for="inp_features_pupd_promoter">Promoter</label>
 				</div>
 				<div class="rowElem">
-					<input type="checkbox" id="inp_features_pupd_targeting" value="Targeting Sequence">
+					<input type="radio" name="inp_features_pupd_details" id="inp_features_pupd_targeting" value="pUPD Targeting Sequence">
 					<label for="inp_features_pupd_targeting">Targeting Sequence</label>
 				</div>
 				<div class="rowElem">
-					<input type="checkbox" id="inp_features_pupd_orf" value="ORF">
+					<input type="radio" name="inp_features_pupd_details" id="inp_features_pupd_orf" value="ORF">
 					<label for="inp_features_pupd_orf">ORF</label>
 				</div>
 				<div class="rowElem">
-					<input type="checkbox" id="inp_features_pupd_terminator" value="Terminator">
+					<input type="radio" name="inp_features_pupd_details" id="inp_features_pupd_terminator" value="pUPD Terminator">
 					<label for="inp_features_pupd_terminator">Terminator</label>
 				</div>
+			</div>
+			<div class="rowOfOne">
+				<input type="text" class="rowElem" id="inp_features_pupd_overhang" placeholder="Overhang">
 			</div>
 		</div>
 
