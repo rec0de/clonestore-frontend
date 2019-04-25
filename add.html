@@ -52,7 +52,7 @@ function updateFeaturePanelVisibility() {
 }
 
 function submitPlasmid() {
-	let markers = [
+	const markers = [
 		'inp_selMark_ampicillin',
 		'inp_selMark_kanamycin',
 		'inp_selMark_spectinomycin',
@@ -62,7 +62,7 @@ function submitPlasmid() {
 		'inp_selMark_rifampicin'
 	];
 
-	let features = [
+	const features = [
 		'inp_features_cloningvector',
 		'inp_features_bacterialexpression',
 		'inp_features_yeastvector',
@@ -71,10 +71,10 @@ function submitPlasmid() {
 		'inp_features_miscellaneous'
 	];
 
-	let plasmid = {};
+	const plasmid = {};
 
 	if(!g('inp_localEntry').checked) {
-		let id = g('inp_foreignName').value;
+		const id = g('inp_foreignName').value;
 		if(!id || id === '') {
 			validationError('Please enter the plasmid name for non-locally prepared plasmids');
 			return;
@@ -83,10 +83,10 @@ function submitPlasmid() {
 		plasmid.id = g('inp_foreignName').value;
 	}
 
-	let createdBy = g('inp_createdBy').value;
-	let initials = g('inp_initials').value.toUpperCase();
-	let timeOfCreation = g('inp_timeOfCreation').valueAsNumber;
-	let description = g('inp_description').value;
+	const createdBy = g('inp_createdBy').value;
+	const initials = g('inp_initials').value.toUpperCase();
+	const timeOfCreation = g('inp_timeOfCreation').valueAsNumber;
+	const description = g('inp_description').value;
 
 	if(!initials || initials === '') {
 		validationError('Please enter your initials');
@@ -121,7 +121,7 @@ function submitPlasmid() {
 
 	// Evaluate custom selection markers
 	if(g('inp_selMark_other').checked) {
-		let otherMarkers = g('inp_selMark_otherValue').value.split(',');
+		const otherMarkers = g('inp_selMark_otherValue').value.split(',');
 		for (let i = 0; i < otherMarkers.length; i++) {
 			plasmid.selectionMarkers.push(otherMarkers[i].trim());
 		}
@@ -133,7 +133,7 @@ function submitPlasmid() {
 
 	// Evaluate custom features
 	if(g('inp_features_other').checked) {
-		let otherFeatures = g('inp_features_otherValue').value.split(',');
+		const otherFeatures = g('inp_features_otherValue').value.split(',');
 		for (let i = 0; i < otherFeatures.length; i++) {
 			plasmid.features.push(otherFeatures[i].trim());
 		}
@@ -141,17 +141,17 @@ function submitPlasmid() {
 
 	// Evaluate MoClo based features
 	if(g('inp_features_moclo').checked) {
-		let mocloFeatures = ['inp_features_moclo_l0', 'inp_features_moclo_l1', 'inp_features_moclo_l2'];
+		const mocloFeatures = ['inp_features_moclo_l0', 'inp_features_moclo_l1', 'inp_features_moclo_l2'];
 		pushIfChecked(mocloFeatures, plasmid.features);
 	}
 
 	// Evaluate Golden Braid based features
 	if(g('inp_features_goldenbraid').checked) {
-		let gbFeatures = ['inp_features_goldenbraid_alpha', 'inp_features_goldenbraid_omega', 'inp_features_goldenbraid_other'];
+		const gbFeatures = ['inp_features_goldenbraid_alpha', 'inp_features_goldenbraid_omega', 'inp_features_goldenbraid_other'];
 		pushIfChecked(gbFeatures, plasmid.features);
 
 		if(g('inp_features_goldenbraid_pupd').checked) {
-			let overhang = g('inp_features_pupd_overhang').value;
+			const overhang = g('inp_features_pupd_overhang').value;
 
 			if(g('inp_features_pupd_promoter').checked) {
 				plasmid.features.push(g('inp_features_pupd_promoter').value + ' Overhang: ' + overhang);
@@ -168,8 +168,16 @@ function submitPlasmid() {
 		}
 	}
 
+	// Evaluate ORFs List
+	plasmid.ORFs = [];
+	const orfs = g('inp_ORFs').value.split(',');
+	for (let i = 0; i < orfs.length; i++) {
+		plasmid.ORFs.push(orfs[i].trim());
+	}
+
+	// Check for selected file
 	if(g('inp_gbfile').files.length > 0) {
-		let reader = new FileReader();
+		const reader = new FileReader();
 		reader.onload = function() {
 			plasmid.geneData = reader.result;
 
@@ -420,6 +428,13 @@ function g(id) {
 		<div class="rowOfOne" id="inp_features_otherPanel" style="display: none;">
 			<p>Please enter any additional features, comma-separated.</p>
 			<input type="text" class="rowElem" id="inp_features_otherValue" placeholder="Custom Features">
+		</div>
+
+		<h2>ORFs</h2>
+
+		<div class="rowOfOne">
+			<p>Please list any ORFs contained, comma-separated. Leave empty for no ORFs.</p>
+			<input type="text" class="rowElem" id="inp_ORFs" placeholder="List of ORFs">
 		</div>
 
 		<h2>Description</h2>
