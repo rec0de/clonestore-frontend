@@ -168,6 +168,15 @@ function submitPlasmid() {
 		}
 	}
 
+	// Evaluate ORFs
+	plasmid.ORFs = [];
+	if(g('inp_ORFs') !== '') {
+		let orfs = g('inp_ORFs').value.split(',');
+		for (let i = 0; i < orfs.length; i++) {
+			plasmid.ORFs.push(orfs[i].trim());
+		}
+	}
+
 	if(g('inp_gbfile').files.length > 0) {
 		let reader = new FileReader();
 		reader.onload = function() {
@@ -175,8 +184,11 @@ function submitPlasmid() {
 
 			g('spinner').style.display = 'block';
 			postPlasmid(JSON.stringify(plasmid)).then(function(data) {
-				if(typeCheck(data, 'plasmidID')) {
-					window.location = `index.html?${data.id}`;
+				if(typeCheck(data, 'objectID')) {
+					window.location = `index.html?p-${data.id}`;
+				}
+				else {
+					g('spinner').style.display = 'none';
 				}
 			});
 		};
@@ -420,6 +432,13 @@ function g(id) {
 		<div class="rowOfOne" id="inp_features_otherPanel" style="display: none;">
 			<p>Please enter any additional features, comma-separated.</p>
 			<input type="text" class="rowElem" id="inp_features_otherValue" placeholder="Custom Features">
+		</div>
+
+		<h2>ORFs</h2>
+
+		<div class="rowOfOne">
+			<p>Please list any contained ORFs, comma-separated.</p>
+			<input type="text" class="rowElem" id="inp_ORFs" placeholder="ORFs">
 		</div>
 
 		<h2>Description</h2>

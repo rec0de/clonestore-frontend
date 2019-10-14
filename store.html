@@ -62,7 +62,7 @@ window.addEventListener('load', function() {
 			g('spinner').style.display = 'block';
 			putStorage(loc, id, host).then(function(response) {
 				if(typeCheck(response, 'success')) {
-					window.location = `index.html?${id}`;
+					window.location = `index.html?p-${id}`;
 				}
 				else {
 					g('spinner').style.display = 'none';

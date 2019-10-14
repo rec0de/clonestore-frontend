@@ -17,9 +17,21 @@ const trashIconDataURL = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3
 
 window.addEventListener('load', function() {
 	if(window.location.search) {
-		const id = window.location.search.substr(1);
-		getPlasmid(id).then(json => showPlasmidInfo(json));
-		getStorageLocations(id).then(json => listStorageLocations(json));
+		const id = window.location.search.substr(3);
+		const type = window.location.search.substr(1, 1);
+		if(type === 'p') {
+			getPlasmid(id).then(json => showPlasmidInfo(json));
+			getStorageLocations(id).then(json => listStorageLocations(json));
+		}
+		else if(type === 'm') {
+			getMicroorganism(id).then(json => showMicroorganismInfo(json));
+		}
+		else if(type === 'g') {
+			getGeneric(id).then(json => showGenericInfo(json));
+		}
+		else {
+			alert('Unknown object type');
+		}
 	}
 	else {
 		g('spinner').style.display = 'none';
@@ -27,8 +39,15 @@ window.addEventListener('load', function() {
 	}
 
 	g('searchButton').addEventListener('click', search);
+	g('addButton').addEventListener('click', function() {
+		g('start').style.display = 'none';
+		g('create').style.display = 'block';
+	});
 	g('printButton').addEventListener('click', function() {
 		printLabel();
+	});
+	g('archiveButton').addEventListener('click', function() {
+		archive();
 	});
 	g('search').addEventListener('keypress', function(e) {
 		const key = e.which || e.keyCode;
@@ -43,11 +62,14 @@ function showPlasmidInfo(data) {
 
 	const plasmid = data.plasmid;
 
+	g('viewHeading').innerText = 'Plasmid Details';
+
 	g('dateOfCreation').innerText = dateString(plasmid.timeOfCreation);
 	g('dateOfEntry').innerText = dateString(plasmid.timeOfEntry);
 
-	g('plasmidID').innerText = plasmid.id;
-	g('currentPlasmidID').value = plasmid.id;
+	g('objectID').innerText = plasmid.id;
+	g('currentID').value = plasmid.id;
+	g('currentType').value = 'p';
 	g('createdBy').innerText = plasmid.createdBy;
 	g('initials').innerText = plasmid.initials;
 	g('labNotes').innerText = plasmid.labNotes;
@@ -56,12 +78,112 @@ function showPlasmidInfo(data) {
 
 	g('selectionMarkers').innerText = plasmid.selectionMarkers.join(', ');
 	g('features').innerText = plasmid.features.join(', ');
+	g('ORFs').innerText = plasmid.ORFs.length > 0 ? plasmid.ORFs.join(', ') : 'None';
 
 	const blob = new Blob([plasmid.geneData]);
 	g('downloadButton').href = window.URL.createObjectURL(blob);
 	g('downloadButton').setAttribute('download', `${plasmid.id}.cs.gb`);
 
 	g('storeButton').href = `store.html#${plasmid.id}`;
+
+	var tohide = document.querySelectorAll('.organism, .generic');
+	var toshow = document.querySelectorAll('.plasmid');
+
+	tohide.forEach(function(item) {
+		item.style.display = 'none';
+	});
+
+	toshow.forEach(function(item) {
+		item.style.display = 'block';
+	});
+
+	g('archivedWarning').style.display = plasmid.archived ? 'block' : 'none';
+	g('buttonRow').classList.remove('rowOfTwo');
+	g('buttonRow').classList.add('rowOfFour');
+
+	g('spinner').style.display = 'none';
+	g('view').style.display = 'block';
+}
+
+function showMicroorganismInfo(data) {
+	typeCheck(data, 'microorganism');
+
+	const organism = data.microorganism;
+
+	g('viewHeading').innerText = 'Microorganism Details';
+
+	g('dateOfCreation').innerText = dateString(organism.timeOfCreation);
+	g('dateOfEntry').innerText = dateString(organism.timeOfEntry);
+
+	g('objectID').innerText = organism.id;
+	g('currentID').value = organism.id;
+	g('currentType').value = 'm';
+	g('createdBy').innerText = organism.createdBy;
+	g('initials').innerText = organism.initials;
+	g('labNotes').innerText = organism.labNotes;
+	g('organism').innerText = organism.organism;
+	g('transformationPlasmid').innerHTML = organism.plasmid ? '<a href="?p-' + organism.plasmid + '">' + organism.plasmid + '</a>' : 'None';
+	g('resistance').innerText = organism.resistance ? organism.resistance : 'None';
+	g('storageLocation').innerText = organism.storageLocation ? organism.storageLocation : 'None';
+
+	// storageLocation
+
+	var tohide = document.querySelectorAll('.plasmid, .generic');
+	var toshow = document.querySelectorAll('.organism');
+
+	tohide.forEach(function(item) {
+		item.style.display = 'none';
+	});
+
+	toshow.forEach(function(item) {
+		item.style.display = 'block';
+	});
+
+	g('archivedWarning').style.display = organism.archived ? 'block' : 'none';
+	g('buttonRow').classList.remove('rowOfFour');
+	g('buttonRow').classList.add('rowOfTwo');
+
+	g('spinner').style.display = 'none';
+	g('view').style.display = 'block';
+}
+
+function showGenericInfo(data) {
+	typeCheck(data, 'genericobject');
+
+	const generic = data.genericobject;
+
+	g('viewHeading').innerText = 'Generic Object Details';
+
+	g('dateOfCreation').innerText = dateString(generic.timeOfCreation);
+	g('dateOfEntry').innerText = dateString(generic.timeOfEntry);
+
+	g('objectID').innerText = generic.id;
+	g('currentID').value = generic.id;
+	g('currentType').value = 'g';
+	g('createdBy').innerText = generic.createdBy;
+	g('initials').innerText = generic.initials;
+	g('labNotes').innerText = generic.labNotes;
+	g('description').innerHTML = generic.description.replace(/\n/g, '<br>');
+	const type = generic.referenceType.substr(0, 1);
+	g('genericRef').innerHTML = generic.referenceID ? '<a href="?' + type + '-' + generic.referenceID + '">' + generic.referenceID + ' (' + generic.referenceType + ')</a>' : 'None';
+	g('storageLocation').innerText = generic.storageLocation ? generic.storageLocation : 'None';
+
+	// storageLocation
+
+	var tohide = document.querySelectorAll('.plasmid, .organism');
+	var toshow = document.querySelectorAll('.generic');
+
+	tohide.forEach(function(item) {
+		item.style.display = 'none';
+	});
+
+	toshow.forEach(function(item) {
+		item.style.display = 'block';
+	});
+
+	g('archivedWarning').style.display = generic.archived ? 'block' : 'none';
+	g('buttonRow').classList.remove('rowOfFour');
+	g('buttonRow').classList.add('rowOfTwo');
 
 	g('spinner').style.display = 'none';
 	g('view').style.display = 'block';
@@ -129,11 +251,12 @@ function showSearchResults(data) {
 			const id = list[i].id;
 			const desc = list[i].description;
 			const creator = list[i].createdBy;
+			const type = list[i].type.substr(0, 1);
 
 			row.innerHTML = `<b>${id}</b> - ${creator} <br> ${elide(desc)}`;
 
 			row.addEventListener('click', function() {
-				window.location = `?${id}`;
+				window.location = `?${type}-${id}`;
 			});
 
 			container.appendChild(row);
@@ -146,14 +269,26 @@ function showSearchResults(data) {
 
 function printLabel(host = '') {
 	g('spinner').style.display = 'block';
-	postPrint(g('currentPlasmidID').value, host).then(function(data) {
+	postPrint(g('currentID').value, g('currentType').value, host).then(function(data) {
 		typeCheck(data, 'success');
 		g('spinner').style.display = 'none';
 	});
 }
 
+function archive() {
+	const confirmMsg = `Mark object ${g('currentID').value} as archived / destroyed?`;
+	
+	if(window.confirm(confirmMsg)) {
+		g('spinner').style.display = 'block';
+		archiveObject(g('currentType').value, g('currentID').value).then(function(data) {
+			typeCheck(data, 'success');
+			g('spinner').style.display = 'none';
+		});
+	}
+}
+
 function freeStorageLoc(location) {
-	const plasmidID = g('currentPlasmidID').value;
+	const plasmidID = g('currentID').value;
 	const confirmMsg = `Remove plasmid ${plasmidID} from storage slot ${location}?`;
 	if(window.confirm(confirmMsg)) {
 		g('spinner').style.display = 'block';
@@ -182,7 +317,7 @@ function typeCheck(data, type) {
 function dateString(timestamp) {
 	const date = new Date(timestamp * 1000);
 
-	let day = date.getDate() + 1;
+	let day = date.getDate();
 	let month = date.getMonth() + 1;
 	const year = date.getFullYear();
 
@@ -228,7 +363,7 @@ function g(id) {
 				<input type="text" id="search" placeholder="Search database...">
 				<svg xmlns="http://www.w3.org/2000/svg" id="searchButton" viewBox="0 0 24 24"><path d="M23.822 20.88l-6.353-6.354c.93-1.465 1.467-3.2 1.467-5.059.001-5.219-4.247-9.467-9.468-9.467s-9.468 4.248-9.468 9.468c0 5.221 4.247 9.469 9.468 9.469 1.768 0 3.421-.487 4.839-1.333l6.396 6.396 3.119-3.12zm-20.294-11.412c0-3.273 2.665-5.938 5.939-5.938 3.275 0 5.94 2.664 5.94 5.938 0 3.275-2.665 5.939-5.94 5.939-3.274 0-5.939-2.664-5.939-5.939z"/></svg>
 			</div>
-			<a href="add.html"><svg id="createButton" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M24 9h-9v-9h-6v9h-9v6h9v9h6v-9h9z"/></svg></a>
+			<a href="#" id="addButton"><svg id="createButton" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path d="M24 9h-9v-9h-6v9h-9v6h9v9h6v-9h9z"/></svg></a>
 			<div id="searchResList"></div>
 		</div>
 		<a href="settings.html">
@@ -237,27 +372,45 @@ function g(id) {
 	</div>
 
 	<div id="view" class="page">
-		<input type="hidden" id="currentPlasmidID">
+		<input type="hidden" id="currentID">
+		<input type="hidden" id="currentType">
 		<div>
-			<h1>Plasmid Details</h1>
-			<p><b>Name:</b> <span id="plasmidID"></span></p>
+			<h2 id="archivedWarning" style="display: none;">This object has been marked as archived/destroyed</h2>
+			<h1 id="viewHeading">Plasmid Details</h1>
+			<p><b>Name:</b> <span id="objectID"></span></p>
 			<p><b>Creator:</b> <span id="createdBy"></span> (<span id="initials"></span>)</p>
 			<p><b>Created:</b> <span id="dateOfCreation"></span>, <b>Stored:</b> <span id="dateOfEntry"></span></p>
 			<p><b>Lab Notes:</b> <span id="labNotes"></span></p>
-			<p><b>Backbone Plasmid:</b> <span id="backbonePlasmid"></span></p>
-			<p><b>Selection Marker:</b> <span id="selectionMarkers"></span></p>
-			<p><b>Plasmid Features:</b> <span id="features"></span></p>
-			<p><b>Description:</b> <div id="description"></div></p>
-			<div class="rowOfThree">
-				<a href="#" class="button rowElem" id="downloadButton">Download</a>
-				<a href="#" class="button rowElem" id="storeButton">Store Sample</a>
+			<p class="plasmid"><b>Backbone Plasmid:</b> <span id="backbonePlasmid"></span></p>
+			<p class="plasmid"><b>Selection Marker:</b> <span id="selectionMarkers"></span></p>
+			<p class="plasmid"><b>Plasmid Features:</b> <span id="features"></span></p>
+			<p class="organism"><b>Organism:</b> <span id="organism"></span></p>
+			<p class="organism"><b>Transformation Plasmid:</b> <span id="transformationPlasmid"></span></p>
+			<p class="organism"><b>Resistance:</b> <span id="resistance"></span></p>
+			<p class="generic"><b>Referenced Object:</b> <span id="genericRef"></span></p>
+			<p class="plasmid"><b>ORFs:</b> <span id="ORFs"></span></p>
+			<p class="plasmid generic"><b>Description:</b> <div id="description"></div></p>
+			<p class="organism generic"><b>Storage Location:</b> <span id="storageLocation"></span></p>
+			<div id="buttonRow">
+				<a href="#" class="button rowElem plasmid" id="downloadButton">Download</a>
+				<a href="#" class="button rowElem plasmid" id="storeButton">Store Sample</a>
 				<a href="#" class="button rowElem" id="printButton">Print Label</a>
+				<a href="#" class="button rowElem" id="archiveButton">Archive</a>
 			</div>
-			<h1>Storage Locations</h1>
-			<div id="locationList"></div>
+			<h1 class="plasmid">Storage Locations</h1>
+			<div class="plasmid" id="locationList"></div>
 			<div class="rowOfThree">
 				<a href="index.html" class="button rowElem">Back</a>
 			</div>
+		</div>
+	</div>
+
+	<div id="create" class="page">
+		<div>
+			<h1 id="viewHeading">Add entry</h1>
+			<a href="addPlasmid.html">Plasmid</a><br>
+			<a href="addMicroorganism.html">Microorganism</a><br>
+			<a href="addGeneric.html">Generic Object</a>
 		</div>
 	</div>
 

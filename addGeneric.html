@@ -1,0 +1,165 @@
+<!doctype html>
+<html>
+<head>
+	<title>CloneStore</title>
+	<meta charset="UTF-8">
+	<meta name=viewport content="width=device-width, initial-scale=1">
+	<link rel="stylesheet" href="css/style.css">
+	<link rel="stylesheet" href="css/loader.css">
+</head>
+
+<body>
+	<script type="text/javascript" src="js/api.js"></script>
+	<script type="text/javascript" src="js/config.js"></script>
+<script>
+window.addEventListener('load', function() {
+	g('inp_submit').addEventListener('click', submitGeneric);
+});
+
+function submitGeneric() {
+
+	let generic = {};
+
+	let createdBy = g('inp_createdBy').value;
+	let initials = g('inp_initials').value.toUpperCase();
+	let timeOfCreation = g('inp_timeOfCreation').valueAsNumber;
+	let storageLocation = g('inp_storagelocation').value;
+	let description = g('inp_description').value;
+	let refType = g('inp_referenceType').value;
+	let refID = g('inp_referenceID').value;
+	refID = refID == '' ? null : refID;
+
+	if(!initials || initials === '') {
+		validationError('Please enter your initials');
+		return;
+	}
+
+	if(!createdBy || createdBy === '') {
+		validationError('Please enter your name');
+		return;
+	}
+
+	if(!timeOfCreation || timeOfCreation < 1) {
+		validationError('Please select a creation date');
+		return;
+	}
+
+	if(!description || description === '') {
+		validationError('Please enter a description');
+		return;
+	}
+
+	if(!storageLocation || storageLocation === '') {
+		validationError('Please enter a storage location');
+		return;
+	}
+
+	generic.createdBy = createdBy;
+	generic.initials = initials;
+	generic.timeOfCreation = timeOfCreation / 1000;
+	generic.description = description;
+	generic.labNotes = g('inp_labNotes').value;
+	generic.storageLocation = storageLocation;
+	generic.referenceType = refType;
+	generic.referenceID = refID;
+
+	g('spinner').style.display = 'block';
+	postGeneric(JSON.stringify(generic)).then(function(data) {
+		if(typeCheck(data, 'objectID')) {
+			window.location = `index.html?g-${data.id}`;
+		}
+		else {
+			g('spinner').style.display = 'none';
+		}
+	});
+}
+
+function validationError(msg) {
+	g('validationError').innerText = msg;
+}
+
+function typeCheck(data, type) {
+	if(data.type === type) {
+		return true;
+	}
+	else if(data.type === 'error') {
+		alert(data.details);
+		return false;
+	}
+	else {
+		alert('Got unexpected data');
+		return false;
+	}
+}
+
+function g(id) {
+	return document.getElementById(id);
+}
+</script>
+
+	<div class="fullscreenLoad" id="spinner">
+		<div id="loader" style="--strands: 10;">
+			<div style="--s: 0;"></div>
+			<div style="--s: 1;"></div>
+			<div style="--s: 2;"></div>
+			<div style="--s: 3;"></div>
+			<div style="--s: 4;"></div>
+			<div style="--s: 5;"></div>
+			<div style="--s: 6;"></div>
+			<div style="--s: 7;"></div>
+			<div style="--s: 8;"></div>
+			<div style="--s: 9;"></div>
+		</div>
+	</div>
+
+	<div class="content">
+		<h1>Add a new generic object</h1>
+
+		<h2>Basic Data</h2>
+
+		<div class="rowOfTwo">
+			<input type="text" class="rowElem" id="inp_createdBy" placeholder="Creator Name">
+			<input type="text" class="rowElem" id="inp_initials" placeholder="Initials">
+		</div>
+
+		<div class="rowOfTwo">
+			<span class="label rowElem">Date created</span>
+			<input type="date" class="rowElem" id="inp_timeOfCreation" placeholder="Date created">
+		</div>
+
+		<div class="rowOfOne">
+			<input type="text" class="rowElem" id="inp_labNotes" placeholder="Lab Notes">
+		</div>
+
+		<h2>References</h2>
+
+		<div class="rowOfTwo">
+			<select id="inp_referenceType">
+				<option value="plasmid">Plasmid</option>
+				<option value="microorganism">Microorganism</option>
+				<option value="generic">Generic Object</option>
+			</select>
+			<input type="text" class="rowElem" id="inp_referenceID" placeholder="Referenced Object ID">
+		</div>
+
+		<h2>Storage</h2>
+
+		<div class="rowOfOne">
+			<input type="text" class="rowElem" id="inp_storagelocation" placeholder="Storage Location">
+		</div>
+
+		<h2>Description</h2>
+
+		<div class="rowOfOne">
+			<textarea id="inp_description" class="rowElem"></textarea>
+		</div>
+
+		<div class="rowOfTwo">
+			<a href="index.html" class="rowElem button">Back</a>
+			<button id="inp_submit" class="rowElem">Create</button>
+		</div>
+		<p id="validationError" style="text-align: center;"></p>
+	</div>
+
+</body>
+</html>
