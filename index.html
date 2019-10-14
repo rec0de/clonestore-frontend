@@ -43,6 +43,10 @@ window.addEventListener('load', function() {
 		g('start').style.display = 'none';
 		g('create').style.display = 'block';
 	});
+	g('createBackButton').addEventListener('click', function() {
+		g('start').style.display = 'block';
+		g('create').style.display = 'none';
+	});
 	g('printButton').addEventListener('click', function() {
 		printLabel();
 	});
@@ -408,9 +412,14 @@ function g(id) {
 	<div id="create" class="page">
 		<div>
 			<h1 id="viewHeading">Add entry</h1>
-			<a href="addPlasmid.html">Plasmid</a><br>
-			<a href="addMicroorganism.html">Microorganism</a><br>
-			<a href="addGeneric.html">Generic Object</a>
+			<div class="rowOfThree">
+				<a href="addPlasmid.html" class="button rowElem">Plasmid</a>
+				<a href="addMicroorganism.html" class="button rowElem">Microorganism</a>
+				<a href="addGeneric.html" class="button rowElem">Generic Object</a>
+			</div>
+			<div class="rowOfThree">
+				<div id="createBackButton" class="button rowElem">back</div>
+			</div>
 		</div>
 	</div>
 
