@@ -34,7 +34,7 @@ window.addEventListener('load', function() {
 		}
 	}
 	else {
-		g('spinner').style.display = 'none';
+		hideSpinner();
 		g('start').style.display = 'block';
 	}
 
@@ -234,15 +234,15 @@ function listStorageLocations(data) {
 }
 
 function search() {
-	g('spinner').style.display = 'block';
+	showSpinner();
 	const term = g('search').value;
 
-	getSearch(term).then(showSearchResults);
+	getSearch(term).then(showSearchResults).catch(handleRequestError);
 }
 
 function showSearchResults(data) {
 	const valid = typeCheck(data, 'searchResultList');
-	g('spinner').style.display = 'none';
+	hideSpinner();
 
 	const list = data.results;
 	const container = g('searchResList');
@@ -273,22 +273,22 @@ function showSearchResults(data) {
 }
 
 function printLabel(host = '') {
-	g('spinner').style.display = 'block';
+	showSpinner();
 	postPrint(g('currentID').value, g('currentType').value, host).then(function(data) {
 		typeCheck(data, 'success');
-		g('spinner').style.display = 'none';
-	});
+		hideSpinner();
+	}).catch(handleRequestError);
 }
 
 function archive() {
 	const confirmMsg = `Mark object ${g('currentID').value} as archived / destroyed?`;
 	
 	if(window.confirm(confirmMsg)) {
-		g('spinner').style.display = 'block';
+		showSpinner();
 		archiveObject(g('currentType').value, g('currentID').value).then(function(data) {
 			typeCheck(data, 'success');
-			g('spinner').style.display = 'none';
-		});
+			hideSpinner();
+		}).catch(handleRequestError);
 	}
 }
 
@@ -296,12 +296,12 @@ function freeStorageLoc(location) {
 	const plasmidID = g('currentID').value;
 	const confirmMsg = `Remove plasmid ${plasmidID} from storage slot ${location}?`;
 	if(window.confirm(confirmMsg)) {
-		g('spinner').style.display = 'block';
+		showSpinner();
 		deleteStorageLocation(location).then(function(data) {
 			typeCheck(data, 'success');
-			g('spinner').style.display = 'none';
+			hideSpinner();
 			getStorageLocations(plasmidID).then(json => listStorageLocations(json));
-		});
+		}).catch(handleRequestError);
 	}
 }
 
@@ -317,6 +317,15 @@ function typeCheck(data, type) {
 		alert('Got unexpected data');
 		return false;
 	}
+}
+
+function handleRequestError(err) {
+	console.log('Request failed:');
+	console.log(err);
+	if(err !== 'authMissing') {
+		alert('There was an error with your request. Reason: '+ (err.details ? err.details : 'unknown'));
+	}
+	hideSpinner();
 }
 
 function dateString(timestamp) {
@@ -339,6 +348,14 @@ function elide(text, length = 200) {
 	else {
 		return text;
 	}
+}
+
+function hideSpinner() {
+	g('spinner').style.display = 'none';
+}
+
+function showSpinner() {
+	g('spinner').style.display = 'block';
 }
 
 function g(id) {

@@ -120,10 +120,33 @@ function request(method, url, data = {}) {
 		url = url.match(/\?[^\?]+$/) ? url + '&sessionToken=' + sessionToken : url + '?sessionToken=' + sessionToken;
 	}
 
-	return fetch(url, {
-		method, // *GET, POST, PUT, DELETE, etc.
-		mode: 'cors', // no-cors, cors, *same-origin
-		cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
-		body: method === 'GET' ? null : formData,
-	}).then(response => response.json());
+	return new Promise((resolve, reject) => {
+		fetch(url, {
+				method, // *GET, POST, PUT, DELETE, etc.
+				mode: 'cors', // no-cors, cors, *same-origin
+				cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+				body: method === 'GET' ? null : formData,
+			}).then(response => response.json()).then(json => {
+				if(json.type == 'authError') {
+					triggerAuthFlow();
+					reject('authMissing');
+				}
+				else {
+					resolve(json);
+				}
+			});
+	});
+}
+
+function triggerAuthFlow() {
+	let authenticationToken = prompt("Please authenticate yourself");
+	authenticate(authenticationToken).then(authSuccess, authFailure);
+}
+
+function authSuccess() {
+	alert('Authentication successful, you\'re all set');
+}
+
+function authFailure() {
+	alert('That did not work');
 }
